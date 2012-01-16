@@ -193,7 +193,7 @@ class CarrierEndiciaUSPS(ModelSQL):
                 self.raise_user_error('custom_details_required',
                     error_args=(move.product.name,))
             new_item = [
-                Element('Description',customs_item_det[0][:50]),
+                Element('Description',customs_item_det[0][:30]),
                 Element('Quantity', int(move.quantity)),
                 Element('Weight', int(line_weights[move.id])),
                 Element('Value', customs_item_det[1]),
@@ -209,7 +209,7 @@ class CarrierEndiciaUSPS(ModelSQL):
         shipping_label_api.add_data({
             'ContentsType': 'Gift',
             'Value': value,
-            'Description': description[:50],
+            'Description': description[:30],
             'CustomsCertify': 'TRUE',
             'CustomsSigner': user_obj.browse(Transaction().user).name,
             })
