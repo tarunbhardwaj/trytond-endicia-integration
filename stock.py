@@ -404,27 +404,24 @@ class EndiciaRefundRequestWizard(Wizard):
         # (account_id, requester_id, passphrase, is_test)
         endicia_credentials = EndiciaConfiguration(1).get_endicia_credentials()
 
-        try:
-            shipment, = Shipment.browse(Transaction().context['active_ids'])
-        except ValueError:
-            self.raise_user_error(
-                'This wizard can be called for only one shipment at a time'
-            )
-
-        if not (
-            shipment.carrier and
-            shipment.carrier.carrier_cost_method == 'endicia'
-        ):
-            self.raise_user_error('wrong_carrier')
+        shipments = Shipment.browse(Transaction().context['active_ids'])
 
         # PICNumber is the argument name expected by endicia in API,
         # so its better to use the same name here for better understanding
-        pic_number = shipment.tracking_number
+        pic_numbers = []
+        for shipment in shipments:
+            if not (
+                shipment.carrier and
+                shipment.carrier.carrier_cost_method == 'endicia'
+            ):
+                self.raise_user_error('wrong_carrier')
+
+            pic_numbers.append(shipment.tracking_number)
 
         test = endicia_credentials.is_test and 'Y' or 'N'
 
         refund_request = RefundRequestAPI(
-            pic_number=pic_number,
+            pic_numbers=pic_numbers,
             accountid=endicia_credentials.account_id,
             requesterid=endicia_credentials.requester_id,
             passphrase=endicia_credentials.passphrase,
@@ -497,25 +494,22 @@ class SCANFormWizard(Wizard):
         endicia_credentials = EndiciaConfiguration(1).get_endicia_credentials()
         default = {}
 
-        try:
-            shipment, = Shipment.browse(Transaction().context['active_ids'])
-        except ValueError:
-            self.raise_user_error(
-                'This wizard can be called for only one shipment at a time'
-            )
+        shipments = Shipment.browse(Transaction().context['active_ids'])
 
-        if not (
-            shipment.carrier and
-            shipment.carrier.carrier_cost_method == 'endicia'
-        ):
-            self.raise_user_error('wrong_carrier')
+        pic_numbers = []
+        for shipment in shipments:
+            if not (
+                shipment.carrier and
+                shipment.carrier.carrier_cost_method == 'endicia'
+            ):
+                self.raise_user_error('wrong_carrier')
 
-        pic_number = shipment.tracking_number
+            pic_numbers.append(shipment.tracking_number)
 
         test = endicia_credentials.is_test and 'Y' or 'N'
 
         scan_request = SCANFormAPI(
-            pic_number=pic_number,
+            pic_numbers=pic_numbers,
             accountid=endicia_credentials.account_id,
             requesterid=endicia_credentials.requester_id,
             passphrase=endicia_credentials.passphrase,
